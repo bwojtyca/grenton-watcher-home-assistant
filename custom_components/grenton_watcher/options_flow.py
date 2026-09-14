@@ -89,6 +89,7 @@ class GrentonWatcherOptionsFlowHandler(config_entries.OptionsFlow):
                 "attribute": user_input["attribute"],
                 "name": user_input["name"],
                 "function": user_input["function"],
+                "skip_unavailable": user_input.get("skip_unavailable", False),
             })
             return await self.async_step_init()
 
@@ -106,6 +107,7 @@ class GrentonWatcherOptionsFlowHandler(config_entries.OptionsFlow):
                     "mode": "dropdown",
                     "translation_key": "function"
                 }),
+                vol.Optional("skip_unavailable", default=False): selector.BooleanSelector(),
             }),
         )
 
@@ -118,6 +120,7 @@ class GrentonWatcherOptionsFlowHandler(config_entries.OptionsFlow):
                 "attribute": user_input["attribute"],
                 "name": user_input["name"],
                 "function": user_input["function"],
+                "skip_unavailable": user_input.get("skip_unavailable", False),
             }
             return await self.async_step_init()
 
@@ -138,6 +141,7 @@ class GrentonWatcherOptionsFlowHandler(config_entries.OptionsFlow):
                     "mode": "dropdown",
                     "translation_key": "function"
                 }),
+                vol.Optional("skip_unavailable", default=mapping.get("skip_unavailable", False)): selector.BooleanSelector(),
             }),
         )
 

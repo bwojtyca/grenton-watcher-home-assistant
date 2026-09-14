@@ -34,7 +34,8 @@
         "data": {
           "attribute": "Attribute",
           "name": "User feature in Grenton",
-          "function": "Convert function"
+          "function": "Convert function",
+          "skip_unavailable": "Skip when the entity is unavailable or unknown (do not send)"
         }
       },
       "edit": {
@@ -44,7 +45,8 @@
           "entity_id": "Entity ID",
           "attribute": "Attribute",
           "name": "User feature in Grenton",
-          "function": "Convert function"
+          "function": "Convert function",
+          "skip_unavailable": "Skip when the entity is unavailable or unknown (do not send)"
         }
       }
     }

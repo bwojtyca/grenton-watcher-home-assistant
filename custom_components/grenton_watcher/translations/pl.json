@@ -34,7 +34,8 @@
         "data": {
           "attribute": "Atrybut",
           "name": "Cecha użytkownika w Grenton",
-          "function": "Funkcja konwertująca"
+          "function": "Funkcja konwertująca",
+          "skip_unavailable": "Pomiń, gdy encja jest niedostępna lub nieznana (nie wysyłaj)"
         }
       },
       "edit": {
@@ -44,7 +45,8 @@
           "entity_id": "Identyfikator encji",
           "attribute": "Atrybut",
           "name": "Cecha użytkownika w Grenton",
-          "function": "Funkcja konwertująca"
+          "function": "Funkcja konwertująca",
+          "skip_unavailable": "Pomiń, gdy encja jest niedostępna lub nieznana (nie wysyłaj)"
         }
       }
     }

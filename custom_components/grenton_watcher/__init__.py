@@ -12,6 +12,7 @@ import aiohttp
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN
 
 _LOGGER = logging.getLogger(__name__)
 DOMAIN = "grenton_watcher"
@@ -51,6 +52,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         counter = 1
         for m in mappings:
             if new_state.entity_id == m["entity_id"]:
+                # Optional per-mapping guard: an entity that is unavailable/unknown
+                # has no value worth sending. Without it the literal text
+                # "unavailable" is written into the Grenton user feature, which a
+                # Thermostat or script downstream reads as a non-number (0).
+                if m.get("skip_unavailable") and new_state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
+                    _LOGGER.debug(
+                        "Skipping %s for %s: state is %s",
+                        m["name"], new_state.entity_id, new_state.state,
+                    )
+                    continue
                 attr = m.get("attribute")
                 val = new_state.state if attr == "state" else new_state.attributes.get(attr)
                 feature=m["name"]
