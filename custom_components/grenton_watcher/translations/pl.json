@@ -74,5 +74,17 @@
         "convert_hvac_swing_mode_to_coolmaster_louver": "Wyciągnij z hvac_swing_mode wartość louver [1-7] (CoolMaster Widget)"
       }
     }
+  },
+  "services": {
+    "push_all": {
+      "name": "Wyślij wszystkie wartości",
+      "description": "Wysyła bieżącą wartość każdego mapowania do Grentona jednym żądaniem (wszystkie grupy obiektów albo tylko wskazaną). Przydatne po restarcie CLU/GATE.",
+      "fields": {
+        "entry_id": {
+          "name": "Grupa obiektów",
+          "description": "Wpis konfiguracji jednej grupy. Pomiń, aby wysłać wszystkie grupy."
+        }
+      }
+    }
   }
 }

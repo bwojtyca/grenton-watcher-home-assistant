@@ -1,0 +1,15 @@
+push_all:
+  name: Push all values
+  description: >-
+    Send the current value of every mapping to Grenton in one request
+    (all object groups, or only the given one). Useful after a CLU/GATE
+    restart, when its user features came back with default values.
+  fields:
+    entry_id:
+      name: Object group
+      description: Config entry id of one object group. Omit to push all groups.
+      required: false
+      example: 01KTPVTAYK4RD2P4BAP9E96TWW
+      selector:
+        config_entry:
+          integration: grenton_watcher

@@ -74,5 +74,17 @@
         "convert_hvac_swing_mode_to_coolmaster_louver": "Extract from hvac_swing_mode the louver position value [1-7] (CoolMaster Widget)"
       }
     }
+  },
+  "services": {
+    "push_all": {
+      "name": "Push all values",
+      "description": "Send the current value of every mapping to Grenton in one request (all object groups, or only the given one). Useful after a CLU/GATE restart.",
+      "fields": {
+        "entry_id": {
+          "name": "Object group",
+          "description": "Config entry of one object group. Omit to push all groups."
+        }
+      }
+    }
   }
 }

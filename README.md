@@ -105,6 +105,16 @@ GATE_HTTP->HA_Integration_Listener->SendResponse()
 <img width="836" height="643" alt="image" src="https://github.com/user-attachments/assets/d5fcac49-6656-4b1b-9964-fb2b280c7792" />
 
 
+
+## Fork changes (bwojtyca)
+
+This fork adds, on top of upstream v1.1.0:
+
+* **`skip_unavailable`** — per-mapping checkbox (add/edit form, default off). When enabled, `unavailable` / `unknown` states are not sent, so the Grenton user feature keeps its last value instead of the literal text.
+* **Push on start** — after Home Assistant has started (and whenever an object group is reloaded) every mapping of the group is sent in **one** listener request (`command`, `command_2`, …).
+* **Service `grenton_watcher.push_all`** — the same grouped push on demand, optionally for one object group (`entry_id`). Call it from an automation when the CLU/GATE comes back after a restart, so its user features get real values instead of defaults.
+* **Serialized sending** — all requests to the GATE listener go through one lock, one at a time.
+
 ## 📖 Usage
 
 1. Navigate to **Settings** > **Devices & Services** and click **+ Add Integration**. Search for **Grenton Watcher**.
