@@ -36,7 +36,7 @@
           "name": "User feature in Grenton",
           "function": "Convert function",
           "skip_unavailable": "Skip when the entity is unavailable or unknown (do not send)",
-          "send_timestamp": "Also send the send time to \"<feature>_ts\" (Unix time, UTC seconds)"
+          "send_timestamp": "Also send the send time to the companion feature with the _ts suffix (Unix time, UTC seconds)"
         }
       },
       "edit": {
@@ -48,7 +48,7 @@
           "name": "User feature in Grenton",
           "function": "Convert function",
           "skip_unavailable": "Skip when the entity is unavailable or unknown (do not send)",
-          "send_timestamp": "Also send the send time to \"<feature>_ts\" (Unix time, UTC seconds)"
+          "send_timestamp": "Also send the send time to the companion feature with the _ts suffix (Unix time, UTC seconds)"
         }
       }
     }

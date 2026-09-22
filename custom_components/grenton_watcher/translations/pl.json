@@ -36,7 +36,7 @@
           "name": "Cecha użytkownika w Grenton",
           "function": "Funkcja konwertująca",
           "skip_unavailable": "Pomiń, gdy encja jest niedostępna lub nieznana (nie wysyłaj)",
-          "send_timestamp": "Wysyłaj też czas wysyłki do cechy \"<cecha>_ts\" (czas uniksowy, sekundy UTC)"
+          "send_timestamp": "Wysyłaj też czas wysyłki do bliźniaczej cechy z sufiksem _ts (czas uniksowy, sekundy UTC)"
         }
       },
       "edit": {
@@ -48,7 +48,7 @@
           "name": "Cecha użytkownika w Grenton",
           "function": "Funkcja konwertująca",
           "skip_unavailable": "Pomiń, gdy encja jest niedostępna lub nieznana (nie wysyłaj)",
-          "send_timestamp": "Wysyłaj też czas wysyłki do cechy \"<cecha>_ts\" (czas uniksowy, sekundy UTC)"
+          "send_timestamp": "Wysyłaj też czas wysyłki do bliźniaczej cechy z sufiksem _ts (czas uniksowy, sekundy UTC)"
         }
       }
     }
