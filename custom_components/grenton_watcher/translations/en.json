@@ -35,7 +35,8 @@
           "attribute": "Attribute",
           "name": "User feature in Grenton",
           "function": "Convert function",
-          "skip_unavailable": "Skip when the entity is unavailable or unknown (do not send)"
+          "skip_unavailable": "Skip when the entity is unavailable or unknown (do not send)",
+          "send_timestamp": "Also send the send time to \"<feature>_ts\" (Unix time, UTC seconds)"
         }
       },
       "edit": {
@@ -46,7 +47,8 @@
           "attribute": "Attribute",
           "name": "User feature in Grenton",
           "function": "Convert function",
-          "skip_unavailable": "Skip when the entity is unavailable or unknown (do not send)"
+          "skip_unavailable": "Skip when the entity is unavailable or unknown (do not send)",
+          "send_timestamp": "Also send the send time to \"<feature>_ts\" (Unix time, UTC seconds)"
         }
       }
     }

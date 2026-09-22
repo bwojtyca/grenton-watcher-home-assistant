@@ -9,6 +9,7 @@ Repository: https://github.com/jnalepka/homeassistant-to-grenton
 
 import asyncio
 import logging
+import time
 import aiohttp
 import voluptuous as vol
 from homeassistant.core import HomeAssistant, ServiceCall, callback
@@ -109,27 +110,55 @@ def _convert(val, func):
     return normalize_value(val)
 
 
-def _mapping_command(m, state):
-    """Build the Lua snippet for one mapping, or None if it must not be sent."""
-    if state is None:
-        return None
-    # Optional per-mapping guard: an entity that is unavailable/unknown
-    # has no value worth sending. Without it the literal text
-    # "unavailable" is written into the Grenton user feature, which a
-    # Thermostat or script downstream reads as a non-number (0).
-    if m.get("skip_unavailable") and state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
-        _LOGGER.debug("Skipping %s for %s: state is %s", m["name"], state.entity_id, state.state)
-        return None
-    attr = m.get("attribute")
-    val = state.state if attr == "state" else state.attributes.get(attr)
-    val = _convert(val, m.get("function", "no_convert"))
-    feature = m["name"]
+def _feature_command(feature, val):
+    """Lua snippet assigning `val` to a Grenton user feature.
+
+    Two forms, as upstream: "CLU220000000->name" writes on that CLU via
+    execute(), a bare "name" writes on the GATE the listener runs on."""
     if '->' in feature:
         name_part_0, name_part_1 = feature.split('->')
         if isinstance(val, str): val = f"\\'{val}\\'"
         return f"{name_part_0}:execute(0, 'setVar(\\'{name_part_1}\\', {val})')"
     if isinstance(val, str): val = f"\'{val}\'"
     return f"setVar('{feature}', {val})"
+
+
+def _timestamp_feature(feature):
+    """Companion timestamp feature name: "<feature>_ts", keeping any CLU prefix."""
+    if '->' in feature:
+        name_part_0, name_part_1 = feature.split('->')
+        return f"{name_part_0}->{name_part_1}_ts"
+    return f"{feature}_ts"
+
+
+def _mapping_commands(m, state, sent_at=None):
+    """Lua snippets for one mapping: the value, optionally followed by its
+    send timestamp. Empty when the mapping must not be sent at all."""
+    if state is None:
+        return []
+    # Optional per-mapping guard: an entity that is unavailable/unknown
+    # has no value worth sending. Without it the literal text
+    # "unavailable" is written into the Grenton user feature, which a
+    # Thermostat or script downstream reads as a non-number (0).
+    if m.get("skip_unavailable") and state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
+        _LOGGER.debug("Skipping %s for %s: state is %s", m["name"], state.entity_id, state.state)
+        return []
+    attr = m.get("attribute")
+    val = state.state if attr == "state" else state.attributes.get(attr)
+    val = _convert(val, m.get("function", "no_convert"))
+    feature = m["name"]
+    commands = [_feature_command(feature, val)]
+    # Optional freshness marker: "<feature>_ts" gets the Unix time (UTC
+    # seconds) at which this value was sent. A script on the CLU compares it
+    # with its own clock, so a feature whose _ts stops advancing - Home
+    # Assistant down, integration unloaded, entity gone unavailable - can be
+    # dropped from whatever it feeds instead of being trusted forever.
+    if m.get("send_timestamp"):
+        commands.append(
+            _feature_command(_timestamp_feature(feature),
+                             int(sent_at if sent_at is not None else time.time()))
+        )
+    return commands
 
 
 def _group_commands(snippets):
@@ -170,11 +199,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         new_state = event.data.get("new_state")
         if not new_state:
             return
+        sent_at = time.time()
         snippets = [
             snippet
             for m in mappings
             if new_state.entity_id == m["entity_id"]
-            if (snippet := _mapping_command(m, new_state)) is not None
+            for snippet in _mapping_commands(m, new_state, sent_at)
         ]
         await send(_group_commands(snippets))
 
@@ -184,12 +214,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         Runs after Home Assistant has started and on the push_all service, so
         a restarted CLU/GATE (whose user features came back with defaults)
         gets the current values without waiting for each entity to change."""
+        sent_at = time.time()
         snippets = [
             snippet
             for m in mappings
-            if (snippet := _mapping_command(m, hass.states.get(m["entity_id"]))) is not None
+            for snippet in _mapping_commands(m, hass.states.get(m["entity_id"]), sent_at)
         ]
-        _LOGGER.info("Pushing %d of %d mappings for '%s'", len(snippets), len(mappings), entry.title)
+        _LOGGER.info("Pushing %d commands for %d mappings of '%s'", len(snippets), len(mappings), entry.title)
         await send(_group_commands(snippets))
 
     remove_listener = async_track_state_change_event(hass, entity_ids, state_changed)
