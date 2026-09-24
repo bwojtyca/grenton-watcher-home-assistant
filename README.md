@@ -114,6 +114,7 @@ This fork adds, on top of upstream v1.1.0:
 * **Push on start** — after Home Assistant has started (and whenever an object group is reloaded) every mapping of the group is sent in **one** listener request (`command`, `command_2`, …).
 * **Service `grenton_watcher.push_all`** — the same grouped push on demand, optionally for one object group (`entry_id`). Call it from an automation when the CLU/GATE comes back after a restart, so its user features get real values instead of defaults.
 * **Serialized sending** — all requests to the GATE listener go through one lock, one at a time.
+* **One command per mapping** — with `send_timestamp` on, the value and its `_ts` travel in a single `execute()` (`CLU…:execute(0, "setVar('x', v) setVar('x_ts', t)")`), halving the gate→CLU remote calls and making the pair atomic.
 * **`send_timestamp`** — per-mapping checkbox (default off). Sends, right after the value and in the same request, the send time to a companion feature `<feature>_ts` (Unix time, UTC seconds; a `CLU…->name` mapping writes `CLU…->name_ts`). A script on the CLU compares it with its own clock: a feature whose `_ts` stops advancing — Home Assistant down, integration unloaded, entity unavailable — can be dropped from whatever it feeds instead of being trusted forever. Pair it with a periodic `push_all` so the marker keeps advancing while the value itself is unchanged.
 
 ## 📖 Usage

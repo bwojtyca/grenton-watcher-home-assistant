@@ -110,17 +110,31 @@ def _convert(val, func):
     return normalize_value(val)
 
 
-def _feature_command(feature, val):
-    """Lua snippet assigning `val` to a Grenton user feature.
+def _feature_command(feature, val, *extra):
+    """Lua snippet assigning values to one or more Grenton user features.
 
-    Two forms, as upstream: "CLU220000000->name" writes on that CLU via
-    execute(), a bare "name" writes on the GATE the listener runs on."""
+    `feature`/`val` is the first assignment; `extra` holds further
+    (name, value) pairs written to the same target, e.g. a companion
+    timestamp. Two forms, as upstream: "CLU220000000->name" writes on that
+    CLU via execute(), a bare "name" writes on the GATE the listener runs
+    on. Several assignments to the same CLU share a single execute() -
+    Lua runs a chunk of statements just as happily as one - which halves
+    the remote calls and makes the value and its timestamp atomic.
+    """
+    pairs = [(feature, val)] + [tuple(extra[i:i + 2]) for i in range(0, len(extra), 2)]
     if '->' in feature:
-        name_part_0, name_part_1 = feature.split('->')
-        if isinstance(val, str): val = f"\\'{val}\\'"
-        return f"{name_part_0}:execute(0, 'setVar(\\'{name_part_1}\\', {val})')"
-    if isinstance(val, str): val = f"\'{val}\'"
-    return f"setVar('{feature}', {val})"
+        target = feature.split('->')[0]
+        statements = []
+        for name, value in pairs:
+            short = name.split('->')[-1]
+            if isinstance(value, str): value = f"\\'{value}\\'"
+            statements.append(f"setVar(\\'{short}\\', {value})")
+        return f"{target}:execute(0, '{' '.join(statements)}')"
+    statements = []
+    for name, value in pairs:
+        if isinstance(value, str): value = f"\'{value}\'"
+        statements.append(f"setVar('{name}', {value})")
+    return " ".join(statements)
 
 
 def _timestamp_feature(feature):
@@ -147,18 +161,16 @@ def _mapping_commands(m, state, sent_at=None):
     val = state.state if attr == "state" else state.attributes.get(attr)
     val = _convert(val, m.get("function", "no_convert"))
     feature = m["name"]
-    commands = [_feature_command(feature, val)]
     # Optional freshness marker: "<feature>_ts" gets the Unix time (UTC
     # seconds) at which this value was sent. A script on the CLU compares it
     # with its own clock, so a feature whose _ts stops advancing - Home
     # Assistant down, integration unloaded, entity gone unavailable - can be
-    # dropped from whatever it feeds instead of being trusted forever.
+    # dropped from whatever it feeds instead of being trusted forever. It
+    # travels in the same command as the value, so the two cannot diverge.
     if m.get("send_timestamp"):
-        commands.append(
-            _feature_command(_timestamp_feature(feature),
-                             int(sent_at if sent_at is not None else time.time()))
-        )
-    return commands
+        stamp = int(sent_at if sent_at is not None else time.time())
+        return [_feature_command(feature, val, _timestamp_feature(feature), stamp)]
+    return [_feature_command(feature, val)]
 
 
 def _group_commands(snippets):
